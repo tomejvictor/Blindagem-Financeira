@@ -1,19 +1,16 @@
 // ===== CONFIGURATION =====
 const CONFIG = {
-    CDI_RATE: 0.1432, // 14.32% ao ano (2026)
-    INFLATION_RATE: 0.0432, // 4.32% ao ano
+    CDI_RATE: 0.1432, // 10.75% ao ano (2026)
+    INFLATION_RATE: 0.045, // 4.62% ao ano
     OPTIMAL_MULTIPLIER: 1.20, // 120% do CDI
     RATES: {
-        poupanca: 0.0819, // 8.19% ao ano
+        poupanca: 0.0817, // 6.17% ao ano
         'cdb-baixo': 0.0968, // 90% do CDI
         'cdb-medio': 0.1075, // 100% do CDI
     },
-    WHATSAPP: '5531920094657', // Altere para o número real
-    ADVISOR_NAME: 'João Tomé'
-};
-const API_KEYS = {
-    BRAPI: 'https://brapi.dev/api/quote/WEGE3?modules=balanceSheetHistory,balanceSheetHistoryQuarterly',
-    DADOS_MERCADO: 'https://newsapi.org/v2/everything?q=tesla&from=2026-01-04&sortBy=publishedAt&apiKey=f68f5fb1e5cb4b97a268b34f5d4867df'
+    WHATSAPP: '5531920094657', // Altere para o seu número real
+    ADVISOR_NAME: 'João Tomé',
+    BRAPI_TOKEN: 'bvjwtABLxWYueC7doNQDRt' // Sua chave Brapi integrada
 };
 
 // ===== UTILITY FUNCTIONS =====
@@ -26,11 +23,8 @@ const formatCurrency = (value) => {
 
 const formatDate = () => {
     return new Date().toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
     });
 };
 
@@ -64,12 +58,9 @@ class InvestmentCalculator {
         const optimalReturn = this.calculateReturn(this.investmentValue, this.optimalRate, this.timePeriod);
         const loss = optimalReturn - currentReturn;
         const lossPercentage = ((loss / this.investmentValue) * 100).toFixed(2);
-
-        // Calcular impacto da inflação
         const inflationImpact = this.calculateInflationImpact(this.investmentValue, this.timePeriod);
         const realLoss = loss + inflationImpact;
 
-        // Projeção 5 anos
         const projection5Current = this.calculateReturn(this.investmentValue, this.currentRate, 60);
         const projection5Optimal = this.calculateReturn(this.investmentValue, this.optimalRate, 60);
         const projection5Loss = projection5Optimal - projection5Current;
@@ -79,13 +70,8 @@ class InvestmentCalculator {
             currentReturn: currentReturn - this.investmentValue,
             optimalValue: optimalReturn,
             optimalReturn: optimalReturn - this.investmentValue,
-            loss,
-            lossPercentage,
-            inflationImpact,
-            realLoss,
-            projection5Current,
-            projection5Optimal,
-            projection5Loss
+            loss, lossPercentage, inflationImpact, realLoss,
+            projection5Current, projection5Optimal, projection5Loss
         };
     }
 
@@ -110,146 +96,116 @@ class InvestmentCalculator {
 
 const calculator = new InvestmentCalculator();
 
-// ===== NEWS API INTEGRATION =====
+// ===== NEWS API INTEGRATION (BRAPI) =====
 class NewsManager {
     constructor() {
         this.newsContainer = document.getElementById('newsContainer');
         this.insights = {
-            'ALTA': 'Este movimento de alta confirma a força do setor. Ótima oportunidade para rebalancear lucros.',
-            'BAIXA': 'Momento de cautela, mas também de oportunidades para quem foca em dividendos e longo prazo.',
-            'NEUTRO': 'Mercado lateralizado. É o momento ideal para o perito analisar os fundamentos com calma.'
+            'economia': ['Movimento crucial para sua carteira.', 'Hora de revisar sua estratégia.'],
+            'default': ['Informação é poder. Como seu assessor, ajudo você a filtrar o que importa.']
         };
     }
 
     async loadNews() {
         try {
             this.showLoading();
+            
+            // Busca notícias reais da Brapi
+            const response = await fetch(`https://brapi.dev/api/news?token=${CONFIG.BRAPI_TOKEN}&category=finance`);
+            const data = await response.json();
 
-            // 1. Buscando dados da Brapi (Cotações Principais)
-            const brapiResponse = await fetch(`https://brapi.dev/api/quote/IBOV,PETR4,VALE3?token=${API_KEYS.BRAPI}`);
-            const marketData = await brapiResponse.json();
-
-            // 2. Buscando Câmbio da HG Brasil (Dólar/Euro)
-            const hgResponse = await fetch(`https://api.hgbrasil.com/finance?format=json-cors&key=${API_KEYS.HG_BRASIL}`);
-            const financeData = await hgResponse.json();
-
-            // 3. Buscando Notícias (Exemplo usando Brapi News ou NewsAPI)
-            // Aqui usamos a lógica de fetch que você enviou adaptada
-            const newsResponse = await fetch(`https://newsapi.org/v2/everything?q=economia+investimentos&language=pt&sortBy=publishedAt&apiKey=SUA_NEWS_API_KEY`);
-            const newsData = await newsResponse.json();
-
-            // Combinamos tudo para renderizar
-            this.renderDashboard(marketData.results, financeData.results.currencies, newsData.articles);
-
+            if (data.news && data.news.length > 0) {
+                this.renderNews(data.news);
+            } else {
+                this.renderNews(this.getMockNews());
+            }
         } catch (error) {
-            console.error('Erro na integração das APIs:', error);
-            // Se as chaves estiverem vazias, ele carregará o Mock para o site não ficar em branco
-            const mockNews = this.getMockNews();
-            this.renderNews(mockNews);
+            console.error('Erro ao carregar notícias:', error);
+            this.renderNews(this.getMockNews()); // Fallback se a API falhar
         }
     }
 
-    // Nova função para criar um Dashboard Profissional
-    renderDashboard(stocks, currencies, articles) {
-        let html = `
-            <div class="market-ticker" style="grid-column: 1/-1; display: flex; gap: 20px; margin-bottom: 20px; overflow-x: auto; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-                <div class="ticker-item"><strong>USD:</strong> R$ ${currencies.USD.buy.toFixed(2)}</div>
-                <div class="ticker-item"><strong>EUR:</strong> R$ ${currencies.EUR.buy.toFixed(2)}</div>
-                ${stocks.map(s => `
-                    <div class="ticker-item">
-                        <strong>${s.symbol}:</strong> R$ ${s.regularMarketPrice} 
-                        <span style="color: ${s.regularMarketChangePercent > 0 ? 'green' : 'red'}">
-                            (${s.regularMarketChangePercent.toFixed(2)}%)
-                        </span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        // Renderiza as notícias reais vindas da API
-        if (articles && articles.length > 0) {
-            html += articles.slice(0, 6).map(article => this.createRealNewsCard(article)).join('');
-        }
-
-        this.newsContainer.innerHTML = html;
+    renderNews(newsArray) {
+        // Remove o spinner e renderiza os cards
+        this.newsContainer.innerHTML = newsArray.slice(0, 6).map(news => {
+            // Normaliza os dados da Brapi ou do Mock
+            const normalizedNews = {
+                image: news.image || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600',
+                title: news.title,
+                description: news.content || news.description || 'Notícia importante sobre o mercado financeiro.',
+                category: 'MERCADO',
+                source: news.source || 'Brapi News',
+                date: news.date || new Date().toLocaleDateString('pt-BR'),
+                url: news.link || news.url || '#',
+                topic: news.topic || 'economia'
+            };
+            return this.createNewsCard(normalizedNews);
+        }).join('');
     }
 
-    createRealNewsCard(article) {
-        const category = "MERCADO";
-        const date = new Date(article.publishedAt).toLocaleDateString('pt-BR');
-        
+    createNewsCard(news) {
         return `
             <article class="news-card">
-                <img src="${article.urlToImage || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600'}" class="news-image" loading="lazy">
+                <img src="${news.image}" alt="${news.title}" class="news-image" loading="lazy">
                 <div class="news-content">
-                    <span class="news-category">${category}</span>
-                    <h3 class="news-title">${article.title}</h3>
-                    <p class="news-description">${article.description || 'Clique para ler os detalhes desta movimentação do mercado.'}</p>
-                    
+                    <span class="news-category">${news.category}</span>
+                    <h3 class="news-title">${news.title}</h3>
+                    <p class="news-description">${news.description}</p>
                     <div class="news-meta">
-                        <span>${article.source.name}</span>
-                        <span>${date}</span>
+                        <span>${news.source}</span>
+                        <span>${news.date}</span>
                     </div>
-                    
                     <div class="advisor-insight">
                         <div class="insight-header">
-                            <div class="insight-avatar" style="background: var(--primary);">JT</div>
-                            <div>
-                                <div class="insight-author">Análise de João Tomé</div>
-                            </div>
+                            <div class="insight-avatar" style="background: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">JT</div>
+                            <div class="insight-author">Insight do ${CONFIG.ADVISOR_NAME}</div>
                         </div>
-                        <p class="insight-text">💡 Como seu assessor, vejo que esta notícia reforça a necessidade de proteção patrimonial hoje.</p>
+                        <p class="insight-text">💡 Como seu assessor, vejo que esta notícia reforça a necessidade de proteger seu patrimônio hoje.</p>
                     </div>
-                    
-                    <a href="${article.url}" target="_blank" class="news-link">Ler notícia completa</a>
+                    <a href="${news.url}" target="_blank" class="news-link">Ler notícia completa</a>
                 </div>
             </article>
         `;
     }
 
-    // Mantive seu MockNews como fallback (caso a API falhe ou as chaves expirem)
-    getMockNews() { /* ... mesmo código do seu original ... */ }
-    renderNews(newsArray) { /* ... mesmo código do seu original ... */ }
-    createNewsCard(news) { /* ... mesmo código do seu original ... */ }
-    showLoading() { /* ... mesmo código do seu original ... */ }
-    showError() { /* ... mesmo código do seu original ... */ }
+    getMockNews() {
+        return [
+            {
+                title: 'Banco Central mantém Selic em 10,50% e sinaliza possível alta',
+                description: 'Copom indica preocupação com cenário inflacionário para 2026.',
+                source: 'Valor Econômico',
+                date: '4 fev 2026',
+                topic: 'economia'
+            }
+        ];
+    }
+
+    showLoading() {
+        this.newsContainer.innerHTML = `
+            <div class="loading-spinner" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                <div class="spinner"></div>
+                <p>Carregando notícias do mercado real...</p>
+            </div>
+        `;
+    }
 }
+
+const newsManager = new NewsManager();
 
 // ===== EVENT HANDLERS =====
 document.addEventListener('DOMContentLoaded', () => {
-    // Load news
     newsManager.loadNews();
 
-    // Format currency input
     const investmentValueInput = document.getElementById('investmentValue');
-    investmentValueInput.addEventListener('input', (e) => {
-        formatInputCurrency(e.target);
-    });
+    if(investmentValueInput) {
+        investmentValueInput.addEventListener('input', (e) => formatInputCurrency(e.target));
+    }
 
-    // Calculate button
     const calculateBtn = document.getElementById('calculateBtn');
-    calculateBtn.addEventListener('click', handleCalculate);
+    if(calculateBtn) calculateBtn.addEventListener('click', handleCalculate);
 
-    // Lead form
     const leadForm = document.getElementById('leadForm');
-    leadForm.addEventListener('submit', handleFormSubmit);
-
-    // Phone mask
-    const phoneInput = document.getElementById('phone');
-    phoneInput.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 11) value = value.slice(0, 11);
-        
-        if (value.length > 6) {
-            value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
-        } else if (value.length > 2) {
-            value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-        } else if (value.length > 0) {
-            value = value.replace(/^(\d*)/, '($1');
-        }
-        
-        e.target.value = value;
-    });
+    if(leadForm) leadForm.addEventListener('submit', handleFormSubmit);
 });
 
 function handleCalculate() {
@@ -270,120 +226,20 @@ function handleCalculate() {
 function displayResults(results) {
     const resultsContainer = document.getElementById('results');
     resultsContainer.classList.remove('hidden');
-
-    // Update timestamp
+    
     document.getElementById('timestamp').textContent = formatDate();
-
-    // Current investment
     document.getElementById('currentValue').textContent = formatCurrency(results.currentValue);
-    document.getElementById('currentReturn').textContent = `Rendimento: ${formatCurrency(results.currentReturn)}`;
-
-    // Optimal investment
     document.getElementById('optimalValue').textContent = formatCurrency(results.optimalValue);
-    document.getElementById('optimalReturn').textContent = `Rendimento: ${formatCurrency(results.optimalReturn)}`;
-
-    // Loss
     document.getElementById('lossValue').textContent = formatCurrency(results.loss);
-    document.getElementById('lossPercentage').textContent = `Você perdeu ${results.lossPercentage}%`;
-
-    // Inflation impact
-    document.getElementById('realLoss').textContent = formatCurrency(results.realLoss);
-
-    // 5 year projection
-    document.getElementById('projection5Current').textContent = formatCurrency(results.projection5Current);
-    document.getElementById('projection5Optimal').textContent = formatCurrency(results.projection5Optimal);
-    document.getElementById('projection5Loss').textContent = formatCurrency(results.projection5Loss);
-
-    // Smooth scroll to results
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    resultsContainer.scrollIntoView({ behavior: 'smooth' });
 }
 
 function handleFormSubmit(e) {
     e.preventDefault();
-
-    const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    
-    // Disable button
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span>Enviando...</span>';
-
-    // Get form data
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
-
-    // Build WhatsApp message
-    const message = buildWhatsAppMessage(data);
-    
-    // Simulate sending (in production, send to your CRM/backend)
-    setTimeout(() => {
-        // Open WhatsApp
-        const whatsappUrl = `https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
-
-        // Success feedback
-        submitBtn.innerHTML = '<span>✅ Redirecionando para WhatsApp...</span>';
-        
-        setTimeout(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-            e.target.reset();
-        }, 3000);
-    }, 1000);
-}
-
-function buildWhatsAppMessage(data) {
-    return `
-🎯 *Nova Solicitação de Consultoria*
-
-👤 *Nome:* ${data.name}
-📱 *Telefone:* ${data.phone}
-📧 *E-mail:* ${data.email}
-💰 *Patrimônio:* ${data.investmentAmount}
-
-${data.message ? `📝 *Mensagem:* ${data.message}` : ''}
-
----
-Enviado via Landing Page de Investimentos
-    `.trim();
-}
-
-// ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    });
-});
-
-// ===== INTERSECTION OBSERVER FOR ANIMATIONS =====
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe elements for animation
-document.querySelectorAll('.calculator-card, .news-card, .form-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(el);
-});
-
-// ===== AUTO-REFRESH NEWS (optional) =====
-// Uncomment to auto-refresh news every 5 minutes
-// setInterval(() => {
-//     newsManager.loadNews();
-// }, 5 * 60 * 1000);
+    const message = `🎯 Nova Solicitação: ${data.name} - Patrimônio: ${data.investmentAmount}`;
+    const whatsappUrl = `https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+              }

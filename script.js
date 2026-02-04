@@ -13,7 +13,6 @@ const CONFIG = {
 };
 const API_KEYS = {
     BRAPI: 'https://brapi.dev/api/quote/WEGE3?modules=balanceSheetHistory,balanceSheetHistoryQuarterly',
-    HG_BRASIL: 'SUA_CHAVE_HG_BRASIL',
     DADOS_MERCADO: 'https://newsapi.org/v2/everything?q=tesla&from=2026-01-04&sortBy=publishedAt&apiKey=f68f5fb1e5cb4b97a268b34f5d4867df'
 };
 

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>João Tomé - Assessoria de Investimentos | Descubra Quanto Você Está Perdendo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="urgency-badge pulse">
+                    <span class="live-dot"></span>
+                    <span>Análise Gratuita - Últimas 7 vagas esta semana</span>
+                </div>
+                
+                <h1 class="hero-title">
+                    Descubra Quanto Dinheiro Você
+                    <span class="highlight">Está Perdendo</span>
+                    Agora Mesmo
+                </h1>
+                
+                <p class="hero-subtitle">
+                    Seu dinheiro está na Poupança ou CDB de banco tradicional? 
+                    <strong>Calcule em 30 segundos</strong> o custo real dessa decisão.
+                </p>
+
+                <div class="trust-indicators">
+                    <div class="trust-item">
+                        <span class="trust-number">R$ 127M+</span>
+                        <span class="trust-label">sob assessoria</span>
+                    </div>
+                    <div class="trust-item">
+                        <span class="trust-number">1.200+</span>
+                        <span class="trust-label">clientes ativos</span>
+                    </div>
+                    <div class="trust-item">
+                        <span class="trust-number">15 anos</span>
+                        <span class="trust-label">de experiência</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Calculator Section -->
+    <section class="calculator-section">
+        <div class="container">
+            <div class="calculator-card">
+                <div class="calculator-header">
+                    <h2>Calculadora de Custo de Oportunidade</h2>
+                    <p>Preencha os dados do seu investimento atual e descubra quanto você pode estar perdendo</p>
+                </div>
+
+                <div class="calculator-body">
+                    <div class="form-group">
+                        <label for="investmentValue">Quanto você tem investido hoje? (R$)</label>
+                        <input type="text" id="investmentValue" placeholder="Ex: 100.000" class="input-field">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="investmentType">Onde está seu dinheiro?</label>
+                        <select id="investmentType" class="input-field">
+                            <option value="">Selecione...</option>
+                            <option value="poupanca">Poupança (≈ 6,17% ao ano)</option>
+                            <option value="cdb-baixo">CDB de Bancão (≈ 90% do CDI)</option>
+                            <option value="cdb-medio">CDB Médio (≈ 100% do CDI)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timePeriod">Há quanto tempo está investido? (meses)</label>
+                        <input type="number" id="timePeriod" placeholder="Ex: 12" min="1" max="120" class="input-field">
+                    </div>
+
+                    <button id="calculateBtn" class="cta-button">
+                        <span>Calcular Meu Prejuízo</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Results -->
+                <div id="results" class="results-container hidden">
+                    <div class="results-header">
+                        <h3>💰 Resultado da Análise</h3>
+                        <p class="results-timestamp">Calculado em: <span id="timestamp"></span></p>
+                    </div>
+
+                    <div class="results-grid">
+                        <div class="result-card current">
+                            <div class="result-label">Seu Investimento Atual</div>
+                            <div class="result-value" id="currentValue">R$ 0,00</div>
+                            <div class="result-detail" id="currentReturn">Rendimento: R$ 0,00</div>
+                        </div>
+
+                        <div class="result-card optimal">
+                            <div class="result-label">Investindo no CDI (120%)</div>
+                            <div class="result-value" id="optimalValue">R$ 0,00</div>
+                            <div class="result-detail" id="optimalReturn">Rendimento: R$ 0,00</div>
+                        </div>
+
+                        <div class="result-card loss">
+                            <div class="result-label">⚠️ Custo de Oportunidade</div>
+                            <div class="result-value danger" id="lossValue">R$ 0,00</div>
+                            <div class="result-detail" id="lossPercentage">Você perdeu 0%</div>
+                        </div>
+                    </div>
+
+                    <div class="inflation-alert">
+                        <div class="alert-icon">📉</div>
+                        <div class="alert-content">
+                            <strong>Impacto da Inflação:</strong>
+                            <p id="inflationText">Considerando a inflação de 4,62% ao ano, seu poder de compra real foi reduzido em <strong id="realLoss">R$ 0,00</strong>.</p>
+                        </div>
+                    </div>
+
+                    <div class="projection-section">
+                        <h4>📊 Projeção: Se continuar assim por mais 5 anos...</h4>
+                        <div class="projection-comparison">
+                            <div class="projection-item">
+                                <span class="projection-label">Cenário Atual</span>
+                                <span class="projection-value" id="projection5Current">R$ 0,00</span>
+                            </div>
+                            <div class="projection-arrow">→</div>
+                            <div class="projection-item optimal">
+                                <span class="projection-label">Cenário Otimizado</span>
+                                <span class="projection-value" id="projection5Optimal">R$ 0,00</span>
+                            </div>
+                            <div class="projection-item loss">
+                                <span class="projection-label">Perda Total</span>
+                                <span class="projection-value danger" id="projection5Loss">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="urgency-cta">
+                        <div class="urgency-icon">⏰</div>
+                        <div class="urgency-text">
+                            <h4>Cada dia que passa, você perde dinheiro.</h4>
+                            <p>Não deixe suas economias trabalharem contra você. Agende uma análise gratuita agora.</p>
+                        </div>
+                    </div>
+
+                    <a href="#lead-form" class="cta-button secondary">
+                        <span>Quero Otimizar Meus Investimentos</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 4V16M10 16L16 10M10 16L4 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market News Section -->
+    <section class="news-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>📰 O Que Está Movimentando o Mercado</h2>
+                <p>Notícias em tempo real + insights exclusivos do assessor João Tomé</p>
+                <div class="live-indicator">
+                    <span class="live-dot"></span>
+                    <span>Atualizado em tempo real</span>
+                </div>
+            </div>
+
+            <div id="newsContainer" class="news-grid">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Carregando notícias do mercado...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lead Form Section -->
+    <section id="lead-form" class="lead-form-section">
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <div class="advisor-profile">
+                        <div class="advisor-avatar">JT</div>
+                        <div class="advisor-info">
+                            <h3>João Tomé</h3>
+                            <p>Assessor de Investimentos | AAI ANCORD</p>
+                            <div class="advisor-rating">
+                                ⭐⭐⭐⭐⭐ <span>4.9/5 (327 avaliações)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="urgency-timer">
+                        <div class="timer-icon">⏰</div>
+                        <div class="timer-text">
+                            <strong>Últimas 7 vagas desta semana</strong>
+                            <p>Agende sua análise gratuita antes que acabem</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="leadForm" class="lead-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Seu nome completo *</label>
+                            <input type="text" id="name" name="name" required placeholder="Ex: Maria Silva" class="input-field">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">WhatsApp *</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="(11) 99999-9999" class="input-field">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mail *</label>
+                        <input type="email" id="email" name="email" required placeholder="seuemail@exemplo.com" class="input-field">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="investmentAmount">Quanto você tem para investir? *</label>
+                        <select id="investmentAmount" name="investmentAmount" required class="input-field">
+                            <option value="">Selecione...</option>
+                            <option value="ate-50k">Até R$ 50.000</option>
+                            <option value="50k-100k">R$ 50.000 - R$ 100.000</option>
+                            <option value="100k-300k">R$ 100.000 - R$ 300.000</option>
+                            <option value="300k-500k">R$ 300.000 - R$ 500.000</option>
+                            <option value="acima-500k">Acima de R$ 500.000</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">O que você busca nos investimentos? (opcional)</label>
+                        <textarea id="message" name="message" rows="3" placeholder="Ex: Quero rentabilidade maior que a poupança com segurança..." class="input-field"></textarea>
+                    </div>
+
+                    <div class="form-benefits">
+                        <h4>✅ Na sua consultoria gratuita você vai receber:</h4>
+                        <ul>
+                            <li>Análise completa da sua carteira atual</li>
+                            <li>Estratégia personalizada para seus objetivos</li>
+                            <li>Recomendações de produtos com melhor rentabilidade</li>
+                            <li>Sem compromisso - você decide depois</li>
+                        </ul>
+                    </div>
+
+                    <button type="submit" class="cta-button primary" id="submitBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 12L21 12M21 12L12 3M21 12L12 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Agendar Consultoria Gratuita no WhatsApp</span>
+                    </button>
+
+                    <p class="privacy-notice">🔒 Seus dados estão seguros. Não compartilhamos com terceiros.</p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>João Tomé Assessoria</h4>
+                    <p>Assessor de Investimentos certificado pela ANCORD</p>
+                    <p>AAI nº 12345 | CVM</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contato</h4>
+                    <p>📱 (11) 99999-9999</p>
+                    <p>📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="82e1edecf6e3f6edc2e8ede3edf6edefe7ace1edeface0f0">[email&#160;protected]</a></p>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <p><small>Este site não oferece garantia de rentabilidade. Investimentos envolvem riscos. Rentabilidade passada não é garantia de rentabilidade futura.</small></p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 João Tomé Assessoria de Investimentos. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script.js"></script>
+</body>
+</html>
